@@ -164,7 +164,7 @@ export default function ProfileButton() {
         onMouseLeave={handleMouseLeave}
       >
         <Button>
-          <img src="/icons/Profile.svg" alt="Profile Icon" />
+          <img src="/icons/profile.svg" alt="Profile Icon" />
         </Button>
         {showDropdown && (
           <DropdownMenu>
@@ -173,7 +173,7 @@ export default function ProfileButton() {
                 <div style={{ padding: "10px 16px", fontSize: "15px", color: "#333" }}>
                   {username}님 환영합니다.
                 </div>
-                <DropdownButton onClick={() => router.push('/settings')}>설정</DropdownButton>
+                <DropdownButton onClick={() => router.push('/settings')}>크레딧</DropdownButton>
                 <DropdownButton onClick={handleLogout}>로그아웃</DropdownButton>
               </>
             ) : (

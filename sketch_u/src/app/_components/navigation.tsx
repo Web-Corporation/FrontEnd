@@ -53,22 +53,20 @@ export default function Navigation() {
   const [selectedMenuIndex, setSelectedMenuIndex] = useState(0);
 
   const menuItems = [
-    { iconSrc: "/icons/Puzzle.svg", text: "로드맵", url: "/roadmapList" },
-    { iconSrc: "/icons/Calendar.svg", text: "캘린더", url: "/calendar" },
-    { iconSrc: "/icons/Setting.svg", text: "설정", url: "/settings" }
+    { iconSrc: process.env.PUBLIC_URL + "icons/puzzle.svg", text: "로드맵", url: "/roadmapList" },
+    { iconSrc: process.env.PUBLIC_URL + "icons/calendar.svg", text: "캘린더", url: "/calendar" },
+    { iconSrc: process.env.PUBLIC_URL + "icons/setting.svg", text: "크레딧", url: "/settings" }
   ];
 
   useEffect(() => {
-    const roadmapRoutes = ['/roadmapList', '/roadmap', '/createRoadmap'];
+    const roadmapRoutes = ['/roadmapList'];
     const isRoadmapRoute = roadmapRoutes.some(route => pathname.startsWith(route));
     
     if (isRoadmapRoute) {
       setSelectedMenuIndex(0);
     } else {
       const currentIndex = menuItems.findIndex(item => pathname.startsWith(item.url));
-      if (currentIndex !== -1) {
-        setSelectedMenuIndex(currentIndex);
-      }
+      setSelectedMenuIndex(currentIndex);
     }
   }, [pathname]);
 
@@ -85,7 +83,7 @@ export default function Navigation() {
   return (
     <Container>
       <Logo onClick={handleLogoClick}>
-        <img src="/icons/Logo.png" alt="LOGO" />
+        <img src="/icons/logo.png" alt="LOGO" />
       </Logo>
       <Menu>
         {menuItems.map((item, index) => (

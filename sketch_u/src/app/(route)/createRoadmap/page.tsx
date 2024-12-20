@@ -118,6 +118,9 @@ const InputWrapper = styled.div<{ $movedUp: boolean }>`
   align-items: center;
   justify-content: center;
   transition: margin 0.6s ease;
+  width: 100%;
+  max-width: 800px;
+  padding: 0 20px;
 
   ${({ $movedUp: movedUp }) =>
     movedUp &&
@@ -133,11 +136,12 @@ const Input = styled.input`
   outline: none;
   font-size: 1.1rem;
   background-color: transparent;
-  width: 774px;
+  min-width: 200px;
   height: 50px;
   background-color: #f6f9f3;
   box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.15);
   padding-left: 20px;
+  padding-right: 20px;
   padding-top: 2px;
 
   &:disabled {
@@ -380,6 +384,90 @@ const LoadingSpinner = styled.div`
   }
 `;
 
+const Modal = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  width: 400px;
+  text-align: center;
+`;
+
+const ModalTitle = styled.h3`
+  font-size: 20px;
+  margin-bottom: 15px;
+  color: #333;
+`;
+
+const ModalDescription = styled.p`
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 25px;
+`;
+
+const ModalButtons = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+`;
+
+const ModalButton = styled.button`
+  padding: 10px 20px;
+  border-radius: 25px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+
+  &.confirm {
+    background-color: #76c7c0;
+    color: white;
+
+    &:hover {
+      background-color: #63aea6;
+    }
+  }
+
+  &.cancel {
+    background-color: #e9e9e9;
+    color: #333;
+
+    &:hover {
+      background-color: #d9d9d9;
+    }
+  }
+`;
+
+// 알람 팝업창을 위한 스타일드 컴포넌트 추가
+const AlertPopup = styled.div<{ $isVisible: boolean }>`
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #76c7c0;
+  color: white;
+  padding: 15px 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transform: translateX(${({ $isVisible }) => ($isVisible ? '0' : '200%')});
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
 const StudyForm: React.FC = () => {
   const [movedUp, setMovedUp] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -413,11 +501,14 @@ const StudyForm: React.FC = () => {
     editingId?: number;
   }>({ items: [] });
   const [isLoading, setIsLoading] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
 
   const handleButtonClick = async () => {
     if (inputValue.trim() === '') return;
     
-    setIsLoading(true); // 로딩 시작
+    setIsLoading(true);
     
     try {
       const response = await RoadmapService.apiFetch(`/roadmap/createroadmap?topic=${encodeURIComponent(inputValue)}`, {
@@ -434,7 +525,7 @@ const StudyForm: React.FC = () => {
           router.push('/login');
           return;
         }
-        console.warn('API 요청 실패, 더미 데이터를 사용합니다.');
+        setShowErrorModal(true);
         roadmapData = { sessionData: DUMMY_ROADMAP_DATA };
         setRoadmapName(inputValue);
       } else {
@@ -459,6 +550,7 @@ const StudyForm: React.FC = () => {
       setMovedUp(true);
     } catch (error) {
       console.error('Failed to create roadmap:', error);
+      setShowErrorModal(true);
       setRoadmapName(inputValue);
       const newRoadmapItems = DUMMY_ROADMAP_DATA.map(session => ({
         number: session.seq,
@@ -475,7 +567,7 @@ const StudyForm: React.FC = () => {
       setRoadmapItems(adjustedItems);
       setMovedUp(true);
     } finally {
-      setIsLoading(false); // 로딩 종료
+      setIsLoading(false);
     }
   };
 
@@ -587,6 +679,8 @@ const StudyForm: React.FC = () => {
   };
 
   const handleSaveRoadmap = async () => {
+    setIsButtonDisabled(true); // 버튼 비활성화
+
     const requestBody = {
       roadmapName: roadmapName,
       sessionData: roadmapItems.map(item => ({
@@ -602,13 +696,18 @@ const StudyForm: React.FC = () => {
     const result = await RoadmapService.saveRoadmap(requestBody);
     
     if (result.success) {
-      alert('로드맵이 저장되었습니다!');
+      setShowAlert(true);
+      setTimeout(() => {
+        setShowAlert(false);
+        router.push('/roadmapList'); // 팝업창 후 라우터 이동
+      }, 3000); // 3초 후 알람 숨김 및 라우터 이동
     } else {
       if (result.error === 'Unauthorized') {
         router.push('/login');
         return;
       }
       alert('로드맵 저장에 실패했습니다.');
+      setIsButtonDisabled(false); // 실패 시 버튼 다시 활성화
     }
   };
 
@@ -743,16 +842,37 @@ const StudyForm: React.FC = () => {
           disabled={movedUp}
         />
         <Button $movedUp={movedUp} onClick={handleButtonClick}>
-          <img src="/icons/SendButton.svg" alt="Send" />
+          <img src="/icons/sendbutton.svg" alt="Send" />
         </Button>
         {movedUp && (
           <NewButtonsContainer>
-            <NewButton isResetButton onClick={handleReset}>다시 입력</NewButton>
-            <NewButton onClick={handleSaveRoadmap}>좋아요</NewButton>
+            <NewButton isResetButton onClick={handleReset} disabled={isButtonDisabled}>다시 입력</NewButton>
+            <NewButton onClick={handleSaveRoadmap} disabled={isButtonDisabled}>좋아요</NewButton>
           </NewButtonsContainer>
         )}
       </InputWrapper>
       <EmptyBox $movedUp={movedUp} />
+      {showErrorModal && (
+        <Modal>
+          <ModalContent>
+            <ModalTitle>로드맵 생성 실패</ModalTitle>
+            <ModalDescription>
+              로드맵 생성에 실패했습니다.<br />
+              주제를 제대로 입력했는지 확인해주세요.<br />
+              기본 로드맵을 표시합니다.
+            </ModalDescription>
+            <ModalButtons>
+              <ModalButton className="confirm" onClick={() => setShowErrorModal(false)}>
+                확인
+              </ModalButton>
+            </ModalButtons>
+          </ModalContent>
+        </Modal>
+      )}
+      <AlertPopup $isVisible={showAlert}>
+        <img src="/icons/check.svg" alt="Success" width="20" height="20" />
+        로드맵이 저장되었습니다!
+      </AlertPopup>
     </StudyContainer>
   );
 };
