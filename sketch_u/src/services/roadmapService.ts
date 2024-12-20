@@ -3,7 +3,7 @@ import { SaveRoadmapRequest, SaveRoadmapResponse, GetAllRoadmapsResponse } from 
 
 
 export class RoadmapService {
-  private static readonly BASE_URL = ' http://43.201.55.125:8081/api';
+  private static readonly BASE_URL = '/api';
 
   static apiFetch = (endpoint: string, options?: RequestInit) => {
     return fetch(`${this.BASE_URL}${endpoint}`, options);
@@ -110,7 +110,6 @@ export class RoadmapService {
           'Authorization': `Bearer ${accessToken}`
         }
       });
-      console.log(response);
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error('Unauthorized');

@@ -88,7 +88,6 @@ const Roadmap: React.FC = () => {
   }, [roadmapId, router, sortOption, showOnlyInProgress]);
 
   useEffect(() => {
-    console.log(roadmapData);
   }, [roadmapData]);
 
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -124,7 +123,7 @@ const Roadmap: React.FC = () => {
             onChange={(e) => setShowOnlyInProgress(e.target.checked)}
           />
           <StyledCheckBox>
-            <img src="icons/Check.svg" alt="check" />
+            <img src="/icons/check.svg" alt="check" />
           </StyledCheckBox>
         </Checkbox>
       </Controls>
